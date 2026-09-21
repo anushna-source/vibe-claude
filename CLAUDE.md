@@ -7,7 +7,7 @@ Working agreement for Claude Code in this repository.
 
 MVP is being built in this order. Do not skip ahead; each step assumes the previous one works.
 
-1. Scaffold + health check
+1. Scaffold + health check — **done** (API only; `apps/web` is not scaffolded yet)
 2. Schema and migrations (MVP tables)
 3. Auth end to end (login, refresh, RBAC)
 4. Locations, departments, categories
