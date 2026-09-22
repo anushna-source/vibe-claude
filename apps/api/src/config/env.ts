@@ -14,7 +14,7 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
   JSON_BODY_LIMIT: z.string().min(1).default('100kb'),
   SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
-  APP_VERSION: z.string().min(1).default('0.1.0'),
+  APP_VERSION: z.string().min(1).default('1.0.0'),
 });
 
 export type Env = z.infer<typeof envSchema> & { readonly corsOrigins: readonly string[] };
