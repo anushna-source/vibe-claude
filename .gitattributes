@@ -1,0 +1,12 @@
+# Always check out text files with LF, including on Windows with core.autocrlf=true.
+# Prettier enforces LF, and scripts mounted into Linux containers break on CRLF.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
