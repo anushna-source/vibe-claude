@@ -1,0 +1,28 @@
+{
+  "name": "inventory",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.5.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter api dev",
+    "build": "tsc -b",
+    "typecheck": "tsc -b && tsc -p apps/api/tsconfig.test.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm -r --if-present test",
+    "test:coverage": "pnpm -r --if-present test:coverage",
+    "clean": "tsc -b --clean"
+  },
+  "devDependencies": {
+    "@inventory/config": "workspace:*",
+    "@types/node": "^26.6.2",
+    "eslint": "^10.11.0",
+    "prettier": "^3.9.8",
+    "typescript": "^5.9.3"
+  }
+}

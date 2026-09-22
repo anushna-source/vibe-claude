@@ -1,0 +1,7 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Build tools that legitimately need their install scripts (native binaries).
+allowBuilds:
+  esbuild: true
