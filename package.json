@@ -16,7 +16,12 @@
     "format:check": "prettier --check .",
     "test": "pnpm -r --if-present test",
     "test:coverage": "pnpm -r --if-present test:coverage",
-    "clean": "tsc -b --clean"
+    "clean": "tsc -b --clean",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d --wait",
+    "db:logs": "docker compose logs -f postgres",
+    "db:psql": "docker compose exec postgres psql -U inventory -d inventory"
   },
   "devDependencies": {
     "@inventory/config": "workspace:*",
