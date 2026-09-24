@@ -12,25 +12,27 @@ The MVP is being built in order (full list in [CLAUDE.md](CLAUDE.md)):
 
 | Step | Scope | State |
 | --- | --- | --- |
-| 1 | Scaffold + health check | ✅ Done (API only) |
+| 1 | Scaffold + health check | ✅ Done (API and web) |
 | 2 | Schema and migrations | Next. Local Postgres via Docker is ready |
 | 3 | Auth (login, refresh, RBAC) | Not started |
 | 4–11 | Locations/departments/categories, staff, assets, assignments, search, dashboard, audit log, pilot | Not started |
 
 What works today: an Express + TypeScript API with a health endpoint, validated configuration,
-structured logging, a standard error envelope, security headers, 68 automated tests, and CI.
-There is **no web app, database schema, or authentication yet**.
+structured logging, a standard error envelope and security headers; and a Next.js dashboard shell
+that reads that endpoint live through the shared zod contract. 108 automated tests, and CI.
+There is **no database schema and no authentication yet**.
 
 ## Stack
 
 | Layer | Choice |
 | --- | --- |
-| Frontend | Next.js (App Router) + TypeScript (not scaffolded yet) |
+| Frontend | Next.js 16 (App Router) + React 19 + Tailwind CSS 4 + shadcn/ui |
 | Backend | Express 5 + TypeScript, REST |
 | Database | PostgreSQL 17 (local via Docker) |
 | Monorepo | pnpm workspaces |
 | Validation | zod, shared between apps via `packages/shared` |
-| Tests | Vitest + Supertest |
+| Data fetching | Server Components, with TanStack Query for client interactivity |
+| Tests | Vitest, Supertest (API), Testing Library (web) |
 
 ## Prerequisites
 
@@ -43,11 +45,15 @@ There is **no web app, database schema, or authentication yet**.
 ```bash
 pnpm install
 cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env.local
 pnpm db:up          # start Postgres in Docker and wait until it is healthy
-pnpm dev            # API on http://localhost:4000
+pnpm dev            # API on :4000 and web on :3000
 ```
 
-Check it is running:
+Open <http://localhost:3000> for the dashboard. It shows the API's live status, which is the
+quickest way to confirm both halves are talking to each other.
+
+Check the API directly:
 
 ```bash
 curl http://localhost:4000/api/v1/health
@@ -69,8 +75,9 @@ curl http://localhost:4000/api/v1/health
 
 | Command | What it does |
 | --- | --- |
-| `pnpm dev` | Run the API with reload on change |
-| `pnpm build` | Compile all packages (`tsc -b`) |
+| `pnpm dev` | Run the API and the web app together, with reload on change |
+| `pnpm --filter api dev` / `pnpm --filter web dev` | Run just one of them |
+| `pnpm build` | Compile the packages and build the web app |
 | `pnpm typecheck` | Type-check source and tests |
 | `pnpm lint` | ESLint |
 | `pnpm format` / `pnpm format:check` | Prettier write / check |
@@ -109,10 +116,27 @@ apps/api            Express API. Feature modules under src/modules/
   src/middleware/   request id, logging, validation, 404, error handler
   src/modules/      one folder per feature: *.routes, *.controller, *.service, *.schema
   tests/            unit/ and integration/
+apps/web            Next.js App Router frontend
+  app/(dashboard)/  the signed-in shell and its pages
+  app/globals.css   Tailwind 4 setup and design tokens (there is no JS config file)
+  components/ui/    shadcn/ui primitives
+  components/shared/ reusable pieces: page header, empty state, error state
+  lib/api-client.ts the only place the app calls the API
+  tests/            unit/ and components/
 packages/shared     zod schemas and types used by both apps
 packages/config     shared tsconfig, ESLint and Prettier config
 docker/             Postgres init scripts
 ```
+
+## Frontend conventions
+
+- Server Components fetch data; `'use client'` only where interactivity requires it.
+- All API access goes through `lib/api-client.ts`, which unwraps the `{ data }` envelope and turns
+  `{ error }` into a typed `ApiError`. No raw `fetch` in components.
+- Reuse `components/shared/` before building anything new; `components/ui/` holds shadcn primitives.
+- Tailwind 4 is configured in `app/globals.css` with `@theme`, not in a JS config file. Add new
+  design tokens there rather than hard-coding colours.
+- Loading and empty states ship with the feature, not afterwards.
 
 ## API conventions
 
