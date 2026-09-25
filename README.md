@@ -128,6 +128,15 @@ packages/config     shared tsconfig, ESLint and Prettier config
 docker/             Postgres init scripts
 ```
 
+## Routes
+
+| Route | What it is |
+| --- | --- |
+| `/` | Internal landing page: what the system does, live API status, which modules exist, build progress |
+| `/dashboard` | The dashboard shell, inside the sidebar layout |
+
+Both are internal. The app sets `robots: noindex, nofollow`; there are no public pages.
+
 ## Frontend conventions
 
 - Server Components fetch data; `'use client'` only where interactivity requires it.
