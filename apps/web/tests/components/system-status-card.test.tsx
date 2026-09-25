@@ -1,7 +1,7 @@
 import type { Health } from '@inventory/shared';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { formatUptime, SystemStatusCard } from '@/app/(dashboard)/_components/system-status-card';
+import { formatUptime, SystemStatusCard } from '@/components/shared/system-status-card';
 
 const health: Health = {
   status: 'ok',

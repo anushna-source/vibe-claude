@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
  * the dashboard arrive with their modules (build steps 4 to 7).
  */
 const navigation = [
-  { label: 'Dashboard', href: '/', icon: LayoutDashboard, ready: true },
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, ready: true },
   { label: 'Assets', href: '/assets', icon: Boxes, ready: false },
   { label: 'Staff', href: '/staff', icon: Users, ready: false },
   { label: 'Locations', href: '/locations', icon: MapPin, ready: false },
@@ -18,7 +18,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen">
       <aside className="hidden w-60 shrink-0 border-r bg-card md:block">
         <div className="flex h-14 items-center border-b px-5">
-          <span className="text-sm font-semibold tracking-tight">Inventory</span>
+          <Link href="/" className="text-sm font-semibold tracking-tight">
+            Inventory
+          </Link>
         </div>
         <nav aria-label="Main" className="space-y-1 p-3">
           {navigation.map(({ label, href, icon: Icon, ready }) =>

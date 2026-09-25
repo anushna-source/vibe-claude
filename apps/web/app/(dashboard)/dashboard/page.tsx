@@ -1,9 +1,9 @@
 import { EmptyState } from '@/components/shared/empty-state';
 import { ErrorState } from '@/components/shared/error-state';
 import { PageHeader } from '@/components/shared/page-header';
+import { SystemStatusCard } from '@/components/shared/system-status-card';
 import { isApiError } from '@/lib/api-client';
 import { getHealth } from '@/lib/health';
-import { SystemStatusCard } from './_components/system-status-card';
 
 // The dashboard reads live data, so it must not be prerendered at build time.
 export const dynamic = 'force-dynamic';
