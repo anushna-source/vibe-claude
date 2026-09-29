@@ -4,8 +4,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api-client';
 
 vi.mock('@/lib/health', () => ({ getHealth: vi.fn() }));
+// lib/session is server-only, so it cannot be imported into a jsdom test.
+vi.mock('@/lib/session', () => ({ getCurrentUser: vi.fn() }));
 
 const { getHealth } = await import('@/lib/health');
+const { getCurrentUser } = await import('@/lib/session');
 const { default: LandingPage } = await import('@/app/page');
 
 const health: Health = {
@@ -23,6 +26,8 @@ async function renderPage() {
 
 beforeEach(() => {
   vi.mocked(getHealth).mockReset();
+  // Signed out unless a test says otherwise.
+  vi.mocked(getCurrentUser).mockReset().mockResolvedValue(null);
 });
 
 describe('landing page', () => {
@@ -35,8 +40,30 @@ describe('landing page', () => {
     expect(screen.getByText('1h 2m')).toBeInTheDocument();
   });
 
-  it('links to the dashboard', async () => {
+  it('offers sign-up and sign-in to a visitor who is not signed in', async () => {
     vi.mocked(getHealth).mockResolvedValue(health);
+
+    await renderPage();
+
+    expect(screen.getByRole('link', { name: /Create an account/ })).toHaveAttribute(
+      'href',
+      '/signup',
+    );
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login');
+    expect(screen.queryByRole('link', { name: /Open the dashboard/ })).not.toBeInTheDocument();
+  });
+
+  it('links a signed-in user straight to the dashboard instead', async () => {
+    vi.mocked(getHealth).mockResolvedValue(health);
+    vi.mocked(getCurrentUser).mockResolvedValue({
+      id: '3f0c2e1a-9d4b-4c8e-9f2a-1b5d6e7f8a90',
+      email: 'viewer@broadway.test',
+      fullName: 'Anush Sharma',
+      role: 'viewer',
+      isActive: true,
+      createdAt: '2026-09-29T04:00:00.000Z',
+      lastLoginAt: null,
+    });
 
     await renderPage();
 
@@ -44,6 +71,8 @@ describe('landing page', () => {
       'href',
       '/dashboard',
     );
+    expect(screen.getByText(/Signed in as Anush Sharma/)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Create an account/ })).not.toBeInTheDocument();
   });
 
   it('still renders the rest of the page when the API is unreachable', async () => {

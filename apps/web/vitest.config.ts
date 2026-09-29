@@ -12,6 +12,8 @@ export default defineConfig({
         new URL('../../packages/shared/src/index.ts', import.meta.url),
       ),
       '@': fileURLToPath(new URL('.', import.meta.url)),
+      // Lets the session and auth modules be unit tested outside a Server Component.
+      'server-only': fileURLToPath(new URL('./tests/stubs/server-only.ts', import.meta.url)),
     },
   },
   test: {
