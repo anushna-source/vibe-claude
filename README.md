@@ -13,8 +13,8 @@ The MVP is being built in order (full list in [CLAUDE.md](CLAUDE.md)):
 | Step | Scope | State |
 | --- | --- | --- |
 | 1 | Scaffold + health check | ✅ Done (API and web) |
-| 2 | Schema and migrations | Next. Local Postgres via Docker is ready |
-| 3 | Auth (login, refresh, RBAC) | Not started |
+| 2 | Schema and migrations | ✅ Done |
+| 3 | Auth (login, refresh, RBAC) | Next. Admin-created accounts, no self sign-up |
 | 4–11 | Locations/departments/categories, staff, assets, assignments, search, dashboard, audit log, pilot | Not started |
 
 What works today: an Express + TypeScript API with a health endpoint, validated configuration,
@@ -85,6 +85,8 @@ curl http://localhost:4000/api/v1/health
 | `pnpm test:coverage` | Tests with coverage thresholds enforced |
 | `pnpm db:up` | Start Postgres and wait until healthy |
 | `pnpm db:down` | Stop Postgres (data is kept) |
+| `pnpm db:migrate` / `pnpm db:migrate:down` | Apply migrations / roll the last one back |
+| `pnpm db:seed` | Insert departments, locations and categories (safe to repeat) |
 | `pnpm db:reset` | **Delete all local data** and start a fresh database |
 | `pnpm db:logs` | Follow the Postgres logs |
 | `pnpm db:psql` | Open a `psql` shell on the dev database |
@@ -147,9 +149,27 @@ Both are internal. The app sets `robots: noindex, nofollow`; there are no public
   design tokens there rather than hard-coding colours.
 - Loading and empty states ship with the feature, not afterwards.
 
+## Database
+
+Migrations live in `apps/api/migrations` and run with Kysely. Each one ships an `up` **and** a
+`down`; never edit one that has already been applied — add a new migration instead.
+
+The domain rules in [AGENT.md](AGENT.md) are enforced by the database, not by application code:
+
+- one live assignment per asset (a partial unique index);
+- an assignment names a person **or** a location, never both (a CHECK constraint);
+- `asset_tag` cannot be changed after insert (a trigger);
+- `asset_events` and `audit_logs` reject `UPDATE` and `DELETE` (triggers);
+- unique indexes ignore soft-deleted rows, so a deleted code or email can be reused;
+- money is `numeric` and comes back as a string, so paisa never round-trip through a float.
+
+Integration tests run against a real Postgres, never a mock. Each run creates its own schema and
+drops it afterwards, so `pnpm db:up` must be running first.
+
 ## API conventions
 
-- Base path `/api/v1`.
+- Base path `/api/v1`. `GET /health` reports liveness; `GET /health/ready` returns 503 when the
+  database is unreachable, so a load balancer can drain the instance.
 - Single resources return `{ data }`. Lists return `{ data, meta: { page, limit, total } }`.
 - Errors return `{ error: { code, message, details?, requestId? } }`. Unexpected errors return a
   generic 500 and never expose stack traces or internal messages.
