@@ -15,6 +15,13 @@ const envSchema = z.object({
   JSON_BODY_LIMIT: z.string().min(1).default('100kb'),
   SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
   APP_VERSION: z.string().min(1).default('1.0.0'),
+
+  DATABASE_URL: z
+    .string()
+    .min(1)
+    .default('postgres://inventory:inventory@localhost:5432/inventory'),
+  DB_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
+  DB_CONNECT_TIMEOUT_MS: z.coerce.number().int().positive().max(60_000).default(5_000),
 });
 
 export type Env = z.infer<typeof envSchema> & { readonly corsOrigins: readonly string[] };

@@ -20,3 +20,16 @@ export type Health = z.infer<typeof healthSchema>;
 
 export const healthResponseSchema = z.object({ data: healthSchema });
 export type HealthResponse = z.infer<typeof healthResponseSchema>;
+
+/** Readiness: is this instance able to serve traffic right now? */
+export const readinessSchema = z.object({
+  status: z.enum(['ready', 'not_ready']),
+  checks: z.object({
+    database: z.enum(['up', 'down']),
+  }),
+  timestamp: z.string().regex(ISO_UTC_DATETIME),
+});
+export type Readiness = z.infer<typeof readinessSchema>;
+
+export const readinessResponseSchema = z.object({ data: readinessSchema });
+export type ReadinessResponse = z.infer<typeof readinessResponseSchema>;
