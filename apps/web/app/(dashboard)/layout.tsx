@@ -1,6 +1,9 @@
 import { Boxes, LayoutDashboard, MapPin, Users } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { getCurrentUser } from '@/lib/session';
+import { SignOutButton } from './_components/user-menu';
 
 /**
  * The shell every signed-in page renders inside. The navigation targets beyond
@@ -13,7 +16,16 @@ const navigation = [
   { label: 'Locations', href: '/locations', icon: MapPin, ready: false },
 ] as const;
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+const ROLE_LABEL = {
+  admin: 'Admin',
+  it_staff: 'IT Staff',
+  viewer: 'Viewer',
+} as const;
+
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  // Middleware already redirects signed-out visitors; this is for display only.
+  const user = await getCurrentUser();
+
   return (
     <div className="flex min-h-screen">
       <aside className="hidden w-60 shrink-0 border-r bg-card md:block">
@@ -49,9 +61,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b bg-card px-5">
+        <header className="flex h-14 items-center justify-between gap-3 border-b bg-card px-5">
           <span className="text-sm font-semibold md:hidden">Inventory</span>
-          <span className="ml-auto text-xs text-muted-foreground">Broadway Infosys</span>
+          <div className="ml-auto flex items-center gap-3">
+            {user ? (
+              <>
+                <div className="hidden text-right sm:block">
+                  <p className="text-xs font-medium">{user.fullName}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                </div>
+                <Badge variant="muted">{ROLE_LABEL[user.role]}</Badge>
+                <SignOutButton />
+              </>
+            ) : (
+              <span className="text-xs text-muted-foreground">Broadway Infosys</span>
+            )}
+          </div>
         </header>
         <main className="flex-1 p-5 md:p-8">{children}</main>
       </div>

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { isApiError } from '@/lib/api-client';
 import { getHealth } from '@/lib/health';
+import { getCurrentUser } from '@/lib/session';
 import { BuildProgress } from './_components/build-progress';
 import { ModuleGrid } from './_components/module-grid';
 
@@ -18,7 +19,10 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function LandingPage() {
-  const health = await getHealth().catch((error: unknown) => (isApiError(error) ? error : null));
+  const [health, user] = await Promise.all([
+    getHealth().catch((error: unknown) => (isApiError(error) ? error : null)),
+    getCurrentUser(),
+  ]);
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-12 md:py-16">
@@ -32,15 +36,32 @@ export default async function LandingPage() {
           desktops, projectors and classroom displays, networking gear, peripherals and spares.
         </p>
         <div className="flex flex-wrap items-center gap-3 pt-1">
-          <Button asChild>
-            <Link href="/dashboard">
-              Open the dashboard
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            For Admin, IT Staff and Viewer accounts. This system is internal only.
-          </p>
+          {user ? (
+            <>
+              <Button asChild>
+                <Link href="/dashboard">
+                  Open the dashboard
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+              </Button>
+              <p className="text-sm text-muted-foreground">Signed in as {user.fullName}.</p>
+            </>
+          ) : (
+            <>
+              <Button asChild>
+                <Link href="/signup">
+                  Create an account
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/login">Sign in</Link>
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                New accounts can view assets and staff.
+              </p>
+            </>
+          )}
         </div>
       </header>
 
