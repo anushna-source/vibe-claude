@@ -8,7 +8,13 @@ Internal inventory management system for **Broadway Infosys**, an IT training in
 It tracks IT assets from purchase to disposal: staff laptops and phones, training-lab desktops,
 projectors and classroom displays, networking gear, peripherals, spares, and software licenses.
 
-Users are internal only: Admin, IT Staff, Viewer (MVP roles). No public-facing pages.
+Roles are Admin, IT Staff, Viewer (MVP roles).
+
+**Registration is open.** `/signup` and `/login` are public, and anyone who can reach the app can
+create an account. New accounts are **Viewer and active immediately**, which means any visitor can
+read the whole asset register and all staff records, including names, emails and phone numbers.
+Everything else requires a session, and every write requires a role that permits it. If this app is
+ever exposed beyond the office network, revisit that decision first.
 
 ## Stack
 
