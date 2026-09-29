@@ -20,8 +20,10 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov'],
       include: ['src/**/*.ts'],
-      // server.ts is the process bootstrap; it is exercised by running the app.
-      exclude: ['src/server.ts'],
+      // Process entry points, exercised by running them rather than by tests:
+      // the server bootstrap and the two database CLIs (`pnpm db:migrate`,
+      // `pnpm db:seed`). The logic they call is covered.
+      exclude: ['src/server.ts', 'src/db/migrate.ts', 'src/db/seed.ts'],
       thresholds: {
         lines: 80,
         statements: 80,
