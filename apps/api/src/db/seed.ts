@@ -1,8 +1,11 @@
 /**
- * Reference data only, and safe to run repeatedly.
- * The first Admin user is seeded in build step 3, where password hashing lives.
+ * Reference data plus, optionally, the first Admin. Safe to run repeatedly.
+ * Registration is open, so anyone can sign up as a Viewer; the seeded Admin is
+ * the only account that starts with administrative rights.
  */
 import type { LocationType } from '@inventory/shared';
+import { env } from '../config/env.js';
+import { hashPassword } from '../lib/password.js';
 import { closeDb, db } from './client.js';
 
 const DEPARTMENTS = [
@@ -90,9 +93,52 @@ export async function seed(): Promise<{
   return { departments, locations, categories };
 }
 
+/**
+ * Creates the first Admin from SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD.
+ * Skipped when either is unset or the account already exists, and the password
+ * is never printed.
+ */
+export async function seedAdmin(): Promise<'created' | 'exists' | 'skipped'> {
+  const email = env.SEED_ADMIN_EMAIL?.toLowerCase();
+  const password = env.SEED_ADMIN_PASSWORD;
+
+  if (!email || !password) return 'skipped';
+
+  const existing = await db
+    .selectFrom('users')
+    .select('id')
+    .where('email', '=', email)
+    .where('deleted_at', 'is', null)
+    .executeTakeFirst();
+
+  if (existing) return 'exists';
+
+  await db
+    .insertInto('users')
+    .values({
+      email,
+      full_name: 'Administrator',
+      password_hash: await hashPassword(password),
+      role: 'admin',
+      is_active: true,
+    })
+    .execute();
+
+  return 'created';
+}
+
 const inserted = await seed();
+const adminOutcome = await seedAdmin();
 // eslint-disable-next-line no-console -- this is a CLI, not the server
 console.log(
   `Seed complete. Inserted ${inserted.departments} departments, ${inserted.locations} locations, ${inserted.categories} categories.`,
+);
+// eslint-disable-next-line no-console -- this is a CLI, not the server
+console.log(
+  {
+    created: 'Admin user created from SEED_ADMIN_EMAIL.',
+    exists: 'Admin user already exists; left alone.',
+    skipped: 'No admin seeded: set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD to create one.',
+  }[adminOutcome],
 );
 await closeDb();

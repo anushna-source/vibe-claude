@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import cors, { type CorsOptions } from 'cors';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
@@ -35,6 +36,8 @@ export function createApp(): Express {
   app.use(helmet());
   app.use(cors(corsOptions));
   app.use(express.json({ limit: env.JSON_BODY_LIMIT }));
+  // Reads the httpOnly refresh-token cookie.
+  app.use(cookieParser());
   app.use(requestLogger);
 
   app.use('/api/v1', apiV1Router);
