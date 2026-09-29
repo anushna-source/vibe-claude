@@ -54,9 +54,12 @@ describe('rule 2: one live assignment per asset', () => {
       .returning('id')
       .executeTakeFirstOrThrow();
 
+    // The database clock, not Node's: assigned_at came from now(), and a few
+    // milliseconds of skew between the container and the host would trip the
+    // returned_at >= assigned_at check. Services must do the same.
     await db
       .updateTable('assignments')
-      .set({ returned_at: new Date() })
+      .set({ returned_at: sql<Date>`now()` })
       .where('id', '=', first.id)
       .execute();
 

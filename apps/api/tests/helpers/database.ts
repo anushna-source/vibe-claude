@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { sql, type Kysely } from 'kysely';
-import { createDb, createPool } from '../../src/db/client.js';
+import { env } from '../../src/config/env.js';
+import { closeDb, createDb, createPool } from '../../src/db/client.js';
 import { migrateAllDown, migrateToLatest } from '../../src/db/migrator.js';
 import type { Database } from '../../src/db/types.js';
 
@@ -23,7 +24,9 @@ export interface TestDatabase {
 }
 
 export async function createTestDatabase(): Promise<TestDatabase> {
-  const schema = `test_${randomUUID().replace(/-/g, '').slice(0, 16)}`;
+  // The same schema the app's own pool is pointed at (see tests/setup.ts), so a
+  // request driven through supertest sees what this harness wrote.
+  const schema = env.DB_SCHEMA ?? `test_${randomUUID().replace(/-/g, '').slice(0, 16)}`;
 
   const adminDb = createDb(createPool({ connectionString: TEST_URL, max: 2 }));
   try {
@@ -56,6 +59,8 @@ export async function createTestDatabase(): Promise<TestDatabase> {
       if (error) throw error;
     },
     destroy: async () => {
+      // The app's pool points at this schema too; leaving it open hangs vitest.
+      await closeDb();
       await db.destroy();
       await sql`drop schema if exists ${sql.id(schema)} cascade`.execute(adminDb);
       await adminDb.destroy();

@@ -38,6 +38,7 @@ describe('migrations', () => {
       'categories',
       'departments',
       'locations',
+      'refresh_sessions',
       'staff',
       'users',
     ]);
@@ -48,7 +49,7 @@ describe('migrations', () => {
     expect(await tableNames()).toEqual([]);
 
     await harness.migrateUp();
-    expect(await tableNames()).toHaveLength(9);
+    expect(await tableNames()).toHaveLength(10);
   }, 60_000);
 
   it('drops its enum types on the way down', async () => {
