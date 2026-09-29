@@ -9,7 +9,7 @@ MVP is being built in this order. Do not skip ahead; each step assumes the previ
 
 1. Scaffold + health check — **done** (API and web foundation; no auth or database yet)
 2. Schema and migrations (MVP tables) — **done** (no seeded admin user yet; that lands with auth)
-3. Auth end to end (login, refresh, RBAC)
+3. Auth end to end (login, refresh, RBAC) — **done** (open sign-up; new accounts are active Viewers)
 4. Locations, departments, categories
 5. Staff module + CSV import
 6. Assets module (CRUD, tag generation, list, detail)

@@ -14,7 +14,7 @@ The MVP is being built in order (full list in [CLAUDE.md](CLAUDE.md)):
 | --- | --- | --- |
 | 1 | Scaffold + health check | ✅ Done (API and web) |
 | 2 | Schema and migrations | ✅ Done |
-| 3 | Auth (login, refresh, RBAC) | API done; sign-up and login pages next |
+| 3 | Auth (login, refresh, RBAC) | ✅ Done |
 | 4–11 | Locations/departments/categories, staff, assets, assignments, search, dashboard, audit log, pilot | Not started |
 
 What works today: an Express + TypeScript API with a health endpoint, validated configuration,
@@ -134,10 +134,14 @@ docker/             Postgres init scripts
 
 | Route | What it is |
 | --- | --- |
-| `/` | Internal landing page: what the system does, live API status, which modules exist, build progress |
-| `/dashboard` | The dashboard shell, inside the sidebar layout |
+| `/` | Landing page: what the system does, live API status, which modules exist, build progress |
+| `/signup`, `/login` | **Public.** Anyone can create an account; new accounts are Viewer |
+| `/dashboard` | Requires a session. Signed-out visitors are redirected to `/login` |
 
-Both are internal. The app sets `robots: noindex, nofollow`; there are no public pages.
+The app sets `robots: noindex, nofollow`. Both session tokens are held in `httpOnly` cookies on the
+web app's own origin, so no page script can read them; middleware renews the short-lived access
+token from the refresh cookie. Route protection in the browser is a convenience — **the API
+enforces authentication and roles on every request**.
 
 ## Frontend conventions
 
