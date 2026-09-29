@@ -146,8 +146,21 @@ export interface AuditLogsTable {
   created_at: Generated<Date>;
 }
 
+/** One row per issued refresh token. Rotating a token revokes the old row. */
+export interface RefreshSessionsTable {
+  id: Generated<string>;
+  user_id: string;
+  token_hash: string;
+  expires_at: Date;
+  revoked_at: Date | null;
+  replaced_by: string | null;
+  user_agent: string | null;
+  created_at: Generated<Date>;
+}
+
 export interface Database {
   users: UsersTable;
+  refresh_sessions: RefreshSessionsTable;
   departments: DepartmentsTable;
   locations: LocationsTable;
   categories: CategoriesTable;
@@ -157,6 +170,8 @@ export interface Database {
   asset_events: AssetEventsTable;
   audit_logs: AuditLogsTable;
 }
+
+export type RefreshSession = Selectable<RefreshSessionsTable>;
 
 export type User = Selectable<UsersTable>;
 export type NewUser = Insertable<UsersTable>;
