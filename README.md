@@ -14,7 +14,7 @@ The MVP is being built in order (full list in [CLAUDE.md](CLAUDE.md)):
 | --- | --- | --- |
 | 1 | Scaffold + health check | ✅ Done (API and web) |
 | 2 | Schema and migrations | ✅ Done |
-| 3 | Auth (login, refresh, RBAC) | Next. Admin-created accounts, no self sign-up |
+| 3 | Auth (login, refresh, RBAC) | API done; sign-up and login pages next |
 | 4–11 | Locations/departments/categories, staff, assets, assignments, search, dashboard, audit log, pilot | Not started |
 
 What works today: an Express + TypeScript API with a health endpoint, validated configuration,
@@ -165,6 +165,26 @@ The domain rules in [AGENT.md](AGENT.md) are enforced by the database, not by ap
 
 Integration tests run against a real Postgres, never a mock. Each run creates its own schema and
 drops it afterwards, so `pnpm db:up` must be running first.
+
+## Accounts and access
+
+**Registration is open.** Anyone who can reach the app can sign up, and a new account is a **Viewer,
+active immediately** — which means read access to the whole asset register and to staff records,
+including names, emails and phone numbers. Rethink this before exposing the app beyond the office
+network. Roles are only changed by an Admin.
+
+| Endpoint | Who |
+| --- | --- |
+| `POST /api/v1/auth/signup`, `POST /api/v1/auth/login` | Public, rate limited per IP |
+| `POST /api/v1/auth/refresh`, `POST /api/v1/auth/logout` | Anyone holding the refresh cookie |
+| `GET /api/v1/auth/me` | Any signed-in user |
+| `GET /api/v1/users`, `PATCH /api/v1/users/:id` | **Admin only** |
+
+- Access tokens are JWTs sent as `Authorization: Bearer`, valid 15 minutes.
+- Refresh tokens are opaque, stored only as a hash, and delivered in an `httpOnly` cookie.
+  Using one rotates it; **replaying a rotated token revokes every session for that user.**
+- Roles are enforced by middleware on the server. Hiding a button is not authorization.
+- Create the first Admin by setting `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD`, then `pnpm db:seed`.
 
 ## API conventions
 
