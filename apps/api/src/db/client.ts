@@ -42,7 +42,10 @@ export function createDb(pool: pg.Pool): Kysely<Database> {
   return new Kysely<Database>({ dialect: new PostgresDialect({ pool }) });
 }
 
-export const pool: pg.Pool = createPool({ connectionString: env.DATABASE_URL });
+export const pool: pg.Pool = createPool({
+  connectionString: env.DATABASE_URL,
+  ...(env.DB_SCHEMA ? { schema: env.DB_SCHEMA } : {}),
+});
 export const db: Kysely<Database> = createDb(pool);
 
 /**
