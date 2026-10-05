@@ -8,7 +8,13 @@ Internal inventory management system for **Broadway Infosys**, an IT training in
 It tracks IT assets from purchase to disposal: staff laptops and phones, training-lab desktops,
 projectors and classroom displays, networking gear, peripherals, spares, and software licenses.
 
-Users are internal only: Admin, IT Staff, Viewer (MVP roles). No public-facing pages.
+Roles are Admin, IT Staff, Viewer (MVP roles).
+
+**Registration is open.** `/signup` and `/login` are public, and anyone who can reach the app can
+create an account. New accounts are **Viewer and active immediately**, which means any visitor can
+read the whole asset register and all staff records, including names, emails and phone numbers.
+Everything else requires a session, and every write requires a role that permits it. If this app is
+ever exposed beyond the office network, revisit that decision first.
 
 ## Stack
 
@@ -59,7 +65,9 @@ Postgres runs locally via `docker-compose up -d`.
 2. **One live assignment per asset.** A row in `assignments` with `returned_at IS NULL` is the live one. This is enforced by a partial unique index — do not work around it in application code.
 3. **Assign / return / transfer are transactional.** Each writes the `assignments` row, updates `assets.status` and `assets.current_assignment_id`, and appends an `asset_events` row. All in one transaction, or none of it.
 4. **`asset_events` is append-only.** Never UPDATE or DELETE a row there. It is the asset timeline and the basis of audits.
-5. **Soft deletes only.** Every table has `deleted_at`. Queries must exclude soft-deleted rows by default.
+5. **Soft deletes only.** Every table has `deleted_at`, except the append-only ones (`asset_events`,
+   `audit_logs`), where a soft delete would contradict rule 4. Queries must exclude soft-deleted rows
+   by default, and unique indexes are partial (`WHERE deleted_at IS NULL`) so a deleted row frees its value.
 6. **Assets can be assigned to a person OR a location**, not both. Lab desktops and projectors belong to rooms; laptops and phones belong to staff. `assignee_type` decides which FK is populated.
 7. **Money is `numeric`, stored in NPR.** Never float. Dates stored UTC, displayed Asia/Kathmandu.
 8. **Every mutation writes an audit log row** with actor, entity, before/after.

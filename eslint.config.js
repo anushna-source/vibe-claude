@@ -1,3 +1,3 @@
-import base from '@inventory/config/eslint';
+import { createEslintConfig } from '@inventory/config/eslint';
 
-export default base;
+export default createEslintConfig({ nextApps: ['apps/web'] });

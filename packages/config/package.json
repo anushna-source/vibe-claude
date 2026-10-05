@@ -1,6 +1,6 @@
 {
   "name": "@inventory/config",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -9,7 +9,8 @@
     "./prettier": "./prettier.config.js"
   },
   "dependencies": {
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.5",
+    "eslint-config-next": "^16.3.6",
     "eslint-config-prettier": "^10.1.8",
     "typescript-eslint": "^8.70.0"
   }

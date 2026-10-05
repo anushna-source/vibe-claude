@@ -1,6 +1,6 @@
 {
   "name": "inventory",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@12.5.1",
@@ -8,9 +8,10 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "pnpm --filter api dev",
-    "build": "tsc -b",
-    "typecheck": "tsc -b && tsc -p apps/api/tsconfig.test.json",
+    "predev": "pnpm --filter @inventory/shared build",
+    "dev": "pnpm -r --parallel --if-present dev",
+    "build": "tsc -b && pnpm --filter web build",
+    "typecheck": "tsc -b && tsc -p apps/api/tsconfig.test.json && pnpm --filter web typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -20,14 +21,18 @@
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && docker compose up -d --wait",
+    "db:migrate": "pnpm --filter api db:migrate",
+    "db:migrate:down": "pnpm --filter api db:migrate:down",
+    "db:seed": "pnpm --filter api db:seed",
     "db:logs": "docker compose logs -f postgres",
     "db:psql": "docker compose exec postgres psql -U inventory -d inventory"
   },
   "devDependencies": {
     "@inventory/config": "workspace:*",
     "@types/node": "^26.6.2",
-    "eslint": "^10.11.0",
+    "eslint": "^9.39.5",
     "prettier": "^3.9.8",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "typescript": "^5.9.3"
   }
 }

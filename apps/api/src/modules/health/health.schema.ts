@@ -3,5 +3,17 @@
  * same shape. It is re-exported here to keep the four-file module layout from
  * AGENTS.md.
  */
-export { healthResponseSchema, healthSchema, healthStatusSchema } from '@inventory/shared';
-export type { Health, HealthResponse, HealthStatus } from '@inventory/shared';
+export {
+  healthResponseSchema,
+  healthSchema,
+  healthStatusSchema,
+  readinessResponseSchema,
+  readinessSchema,
+} from '@inventory/shared';
+export type {
+  Health,
+  HealthResponse,
+  HealthStatus,
+  Readiness,
+  ReadinessResponse,
+} from '@inventory/shared';
