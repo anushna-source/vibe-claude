@@ -65,7 +65,7 @@ curl http://localhost:4000/api/v1/health
     "status": "ok",
     "uptimeSeconds": 1.053,
     "timestamp": "2026-09-21T13:16:32.247Z",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "environment": "development"
   }
 }

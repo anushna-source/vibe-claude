@@ -37,6 +37,8 @@ describe('landing page', () => {
     await renderPage();
 
     expect(screen.getByText('1.0.0')).toBeInTheDocument();
+    // The badge reads the live version, so a release bump cannot leave it stale.
+    expect(screen.getByText('Internal tool · v1.0.0')).toBeInTheDocument();
     expect(screen.getByText('1h 2m')).toBeInTheDocument();
   });
 
@@ -84,6 +86,8 @@ describe('landing page', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('Could not reach the API');
     expect(screen.getByRole('heading', { name: 'What you can do' })).toBeInTheDocument();
+    // No version to show, so the badge falls back rather than inventing one.
+    expect(screen.getByText('Internal tool')).toBeInTheDocument();
   });
 
   it('shows the request id when the API returns one', async () => {
