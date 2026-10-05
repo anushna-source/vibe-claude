@@ -27,7 +27,12 @@ export default async function LandingPage() {
   return (
     <div className="mx-auto max-w-4xl px-5 py-12 md:py-16">
       <header className="space-y-4">
-        <Badge variant="muted">Internal tool · v1.0.0</Badge>
+        {/* Read from the API rather than hard-coded, so it cannot drift at release time. */}
+        <Badge variant="muted">
+          {health !== null && !isApiError(health)
+            ? `Internal tool · v${health.version}`
+            : 'Internal tool'}
+        </Badge>
         <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
           Broadway Infosys Inventory
         </h1>
