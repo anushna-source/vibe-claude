@@ -1,5 +1,10 @@
-import { errorResponseSchema, type ErrorCode } from '@inventory/shared';
-import type { ZodType } from 'zod';
+import {
+  errorResponseSchema,
+  paginationMetaSchema,
+  type ErrorCode,
+  type PaginationMeta,
+} from '@inventory/shared';
+import { z, type ZodType } from 'zod';
 import { apiBaseUrl, apiTimeoutMs } from './env';
 
 /**
@@ -42,6 +47,8 @@ export interface RequestOptions<T> {
   signal?: AbortSignal;
   /** Forwarded as X-Request-Id so a page load can be traced in the API logs. */
   requestId?: string;
+  /** Bearer token for a protected endpoint. Read from the session cookie server side. */
+  accessToken?: string;
   headers?: Record<string, string>;
 }
 
@@ -73,8 +80,13 @@ function toFailure(response: Response, body: unknown): ApiError {
   });
 }
 
-export async function apiRequest<T>(path: string, options: RequestOptions<T> = {}): Promise<T> {
-  const { method = 'GET', body, schema, signal, requestId, headers = {} } = options;
+interface RawResponse {
+  response: Response;
+  payload: unknown;
+}
+
+async function send(path: string, options: RequestOptions<unknown>): Promise<RawResponse> {
+  const { method = 'GET', body, signal, requestId, accessToken, headers = {} } = options;
 
   const timeout = AbortSignal.timeout(apiTimeoutMs());
   const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
@@ -90,6 +102,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions<T> = {
         Accept: 'application/json',
         ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
         ...(requestId === undefined ? {} : { 'X-Request-Id': requestId }),
+        ...(accessToken === undefined ? {} : { Authorization: `Bearer ${accessToken}` }),
         ...headers,
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -107,21 +120,57 @@ export async function apiRequest<T>(path: string, options: RequestOptions<T> = {
     throw toFailure(response, payload);
   }
 
+  return { response, payload };
+}
+
+const unexpected = (status: number): ApiError =>
+  new ApiError('INTERNAL_ERROR', 'The server returned an unexpected response', { status });
+
+/** Single resources: `{ data }`. */
+export async function apiRequest<T>(path: string, options: RequestOptions<T> = {}): Promise<T> {
+  const { schema } = options;
+  const { response, payload } = await send(path, options);
+
+  // A delete answers 204 with no body; there is no envelope to unwrap.
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
   if (schema) {
     const parsed = schema.safeParse(payload);
-    if (!parsed.success) {
-      throw new ApiError('INTERNAL_ERROR', 'The server returned an unexpected response', {
-        status: response.status,
-      });
-    }
+    if (!parsed.success) throw unexpected(response.status);
     return parsed.data.data;
   }
 
   if (typeof payload !== 'object' || payload === null || !('data' in payload)) {
-    throw new ApiError('INTERNAL_ERROR', 'The server returned an unexpected response', {
-      status: response.status,
-    });
+    throw unexpected(response.status);
   }
 
   return (payload as { data: T }).data;
+}
+
+export interface ApiListResult<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
+/**
+ * List endpoints answer `{ data, meta }` at the top level, not a `data` wrapped
+ * around both (AGENTS.md). Keeping that in one place stops every list page from
+ * guessing at the envelope.
+ */
+export async function apiListRequest<T>(
+  path: string,
+  options: Omit<RequestOptions<T>, 'schema'> & { itemSchema: ZodType<T> },
+): Promise<ApiListResult<T>> {
+  const { itemSchema, ...rest } = options;
+  const { response, payload } = await send(path, rest);
+
+  const parsed = z
+    .object({ data: z.array(itemSchema), meta: paginationMetaSchema })
+    .safeParse(payload);
+
+  if (!parsed.success) throw unexpected(response.status);
+
+  return parsed.data;
 }
