@@ -53,11 +53,23 @@ describe('ModuleGrid', () => {
 });
 
 describe('MODULES', () => {
-  it('has no link pointing at a route that does not exist yet', () => {
-    // Guards the real reason this component exists: no dead links on the landing page.
-    const shipped = MODULES.filter((entry) => entry.href !== undefined);
+  /**
+   * The real reason this component exists: no dead links on the landing page.
+   * A module gets an href only once its route ships, so this list is the
+   * allow-list of routes that actually exist.
+   */
+  const SHIPPED_ROUTES = ['/dashboard/locations'];
 
-    expect(shipped).toEqual([]);
+  it('only links to routes that exist', () => {
+    const linked = MODULES.filter((entry) => entry.href !== undefined).map((entry) => entry.href);
+
+    expect(linked.sort()).toEqual(SHIPPED_ROUTES.sort());
+  });
+
+  it('links every shipped module under /dashboard', () => {
+    for (const entry of MODULES) {
+      if (entry.href !== undefined) expect(entry.href.startsWith('/dashboard/')).toBe(true);
+    }
   });
 
   it('gives every module a build step and a description', () => {
