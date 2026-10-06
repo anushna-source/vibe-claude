@@ -1,4 +1,4 @@
-import { Boxes, LayoutDashboard, MapPin, Users } from 'lucide-react';
+import { Boxes, Building2, LayoutDashboard, MapPin, Tags, Users } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -11,9 +11,11 @@ import { SignOutButton } from './_components/user-menu';
  */
 const navigation = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, ready: true },
-  { label: 'Assets', href: '/assets', icon: Boxes, ready: false },
-  { label: 'Staff', href: '/staff', icon: Users, ready: false },
-  { label: 'Locations', href: '/locations', icon: MapPin, ready: false },
+  { label: 'Assets', href: '/dashboard/assets', icon: Boxes, ready: false },
+  { label: 'Staff', href: '/dashboard/staff', icon: Users, ready: false },
+  { label: 'Locations', href: '/dashboard/locations', icon: MapPin, ready: true },
+  { label: 'Departments', href: '/dashboard/departments', icon: Building2, ready: true },
+  { label: 'Categories', href: '/dashboard/categories', icon: Tags, ready: true },
 ] as const;
 
 const ROLE_LABEL = {

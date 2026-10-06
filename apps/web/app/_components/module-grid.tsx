@@ -35,6 +35,7 @@ export const MODULES: readonly Module[] = [
     label: 'Locations',
     description: 'Labs, classrooms and stores that hold shared equipment.',
     icon: MapPin,
+    href: '/dashboard/locations',
     step: 4,
   },
   {
