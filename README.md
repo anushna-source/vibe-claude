@@ -15,7 +15,8 @@ The MVP is being built in order (full list in [CLAUDE.md](CLAUDE.md)):
 | 1 | Scaffold + health check | ✅ Done (API and web) |
 | 2 | Schema and migrations | ✅ Done |
 | 3 | Auth (login, refresh, RBAC) | ✅ Done |
-| 4–11 | Locations/departments/categories, staff, assets, assignments, search, dashboard, audit log, pilot | Not started |
+| 4 | Locations, departments, categories | ✅ Done |
+| 5–11 | Staff, assets, assignments, search, dashboard, audit log, pilot | Not started |
 
 What works today: an Express + TypeScript API with a health endpoint, validated configuration,
 structured logging, a standard error envelope and security headers; and a Next.js dashboard shell
@@ -137,11 +138,25 @@ docker/             Postgres init scripts
 | `/` | Landing page: what the system does, live API status, which modules exist, build progress |
 | `/signup`, `/login` | **Public.** Anyone can create an account; new accounts are Viewer |
 | `/dashboard` | Requires a session. Signed-out visitors are redirected to `/login` |
+| `/dashboard/locations`, `/dashboard/departments`, `/dashboard/categories` | Reference data. Everyone reads; Admin and IT Staff edit |
 
 The app sets `robots: noindex, nofollow`. Both session tokens are held in `httpOnly` cookies on the
 web app's own origin, so no page script can read them; middleware renews the short-lived access
 token from the refresh cookie. Route protection in the browser is a convenience — **the API
 enforces authentication and roles on every request**.
+
+## Reference data
+
+Departments, locations and categories are the lists everything else hangs off: staff belong to a
+department, assets belong to a category, and shared equipment is assigned to a location.
+
+Two rules are worth knowing before editing them:
+
+- **A category code freezes once an asset carries it.** The code is the middle of every asset tag
+  (`BI-LAP-0042`) and tags are immutable, so it can be corrected while the category is unused and is
+  refused afterwards. The name stays editable either way.
+- **Deleting something still in use is refused**, with a message naming what blocks it — "Lab 1 still
+  holds 12 assets". Deletes are soft, so a deleted name or code becomes available again.
 
 ## Frontend conventions
 
@@ -183,6 +198,9 @@ network. Roles are only changed by an Admin.
 | `POST /api/v1/auth/refresh`, `POST /api/v1/auth/logout` | Anyone holding the refresh cookie |
 | `GET /api/v1/auth/me` | Any signed-in user |
 | `GET /api/v1/users`, `PATCH /api/v1/users/:id` | **Admin only** |
+| `GET /api/v1/{departments,locations,categories}` | Any signed-in user |
+| `POST`, `PATCH` on those | Admin and IT Staff |
+| `DELETE` on those | **Admin only** |
 
 - Access tokens are JWTs sent as `Authorization: Bearer`, valid 15 minutes.
 - Refresh tokens are opaque, stored only as a hash, and delivered in an `httpOnly` cookie.
