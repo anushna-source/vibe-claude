@@ -17,6 +17,10 @@ next-env.d.ts
 npm-debug.log*
 pnpm-debug.log*
 
+# QA reports and captured command output stay local.
+reports/
+logs/
+
 .DS_Store
 Thumbs.db
 .idea/
